@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port= process.env.PORT || 5000;
 
@@ -39,6 +39,13 @@ async function run() {
       res.send(result);
   })
 
+  app.get('/products/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) }
+    const result = await productCollection.findOne(query);
+    res.send(result);
+})
+
   app.post("/products", async (req, res) => {
     const product = req.body;
     console.log("product", product);
@@ -46,6 +53,29 @@ async function run() {
     console.log(result);
     res.send(result);
   });
+
+
+  app.put('/products/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true };
+    const updated = req.body;
+
+    const product = {
+        $set: {
+            name: updated.name,
+            quantity: updated.quantity,
+            supplier: updated.supplier,
+            taste: updated.taste,
+            category: updated.category,
+            details: updated.details,
+            photo: updated.photo
+        }
+    }
+
+    const result = await productCollection.updateOne(filter, product, options);
+    res.send(result);
+})
 
 
     // Send a ping to confirm a successful connection
